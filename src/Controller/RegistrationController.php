@@ -2,7 +2,7 @@
 
 namespace App\Controller;
 
-use App\Service\TokenService;
+use App\Entity\Accounts;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
@@ -21,7 +21,7 @@ class RegistrationController extends AbstractController
         $data = json_decode($request->getContent(), true);
         $checkEmail = $em->getRepository(User::class)->findBy(['email' => $data['email']]);
 
-        if (isset($checkEmail)){
+        if (!empty($checkEmail)){
             return new JsonResponse(['message'=>'User with this email has been already registered'], 500);
         }
 
@@ -33,7 +33,12 @@ class RegistrationController extends AbstractController
                 ->setRole('Null')
                 ->setFirstName($data['first_name'])
                 ->setLastName($data['last_name']);
+        $account = new Accounts();
+        $account->setUserEmail($data['email'])
+            ->setBalance(0)
+            ->setCurrency('USD');
         $em->persist($user);
+        $em->persist($account);
         $em->flush();
 
         return $this->json(['message' => 'You have been successfully registered'], 201);

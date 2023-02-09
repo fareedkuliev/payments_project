@@ -16,7 +16,7 @@ class Accounts
     #[ORM\Column(length: 55)]
     private ?string $user_email = null;
 
-    #[ORM\Column(length: 55)]
+    #[ORM\Column(nullable: true)]
     private ?string $account_number = null;
 
     #[ORM\Column]
