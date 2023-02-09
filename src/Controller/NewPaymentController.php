@@ -17,13 +17,19 @@ class NewPaymentController extends AbstractController
         $this->tokenService = $tokenService;
     }
 
-    #[Route('/new/payment', name: 'app_new_payment', methods: 'GET')]
+    #[Route('/api/payment', name: 'app_new_payment', methods: 'GET')]
     public function getData(ManagerRegistry $doctrine, Request $request): JsonResponse
     {
         $authorizationHeader = $request->headers->get("Authorization");
         $token = $this->tokenService->decodeToken(substr($authorizationHeader, 7));
+        $email = $token->data['0'];
+
+
 
         return $this->json([
+            'success' => true,
+
+
         ]);
     }
 }
