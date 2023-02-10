@@ -30,14 +30,14 @@ class UtilityServices
         return $this->id;
     }
 
-    public function getServiceтфname(): ?string
+    public function getServiceName(): ?string
     {
-        return $this->service_тфname;
+        return $this->service_name;
     }
 
-    public function setServiceтфname(string $service_тфname): self
+    public function setServiceName(string $service_name): self
     {
-        $this->service_тфname = $service_тфname;
+        $this->service_name = $service_name;
 
         return $this;
     }

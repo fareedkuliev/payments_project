@@ -33,10 +33,12 @@ class RegistrationController extends AbstractController
                 ->setRole('Null')
                 ->setFirstName($data['first_name'])
                 ->setLastName($data['last_name']);
+
         $account = new Accounts();
         $account->setUserEmail($data['email'])
-            ->setBalance(0)
-            ->setCurrency('USD');
+                ->setBalance(0)
+                ->setCurrency('USD');
+
         $em->persist($user);
         $em->persist($account);
         $em->flush();
