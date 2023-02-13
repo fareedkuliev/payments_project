@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\Accounts;
 use App\Entity\Cards;
 use App\Entity\Transaction;
 use App\Entity\UtilityServices;
@@ -77,7 +78,11 @@ class NewPaymentController extends AbstractController
         $recipient = $em->getRepository(Cards::class)->findOneBy(['card_number' => $data['recipient_card_account']]);
         $sender->setBalance($sender->getBalance() - $data['amount']);
         $recipient->setBalance($recipient->getBalance() + $data['amount']);
-        $em->flush();
+
+        $senderAccount = $em->getRepository(Accounts::class)->findOneBy(['user_email' => $email]);
+        $recipientAccount = $em->getRepository(Accounts::class)->findOneBy(['id' => $recipient->getAccountId()]);
+        $senderAccount->setBalance($senderAccount->getBalance() - $data['amount']);
+        $recipientAccount->setBalance($recipientAccount->getBalance() + $data['amount']);
 
         $transaction = new Transaction();
         $transaction->setTypeOfTransaction($data['type_of_transaction'])
@@ -90,7 +95,9 @@ class NewPaymentController extends AbstractController
         $em->persist($transaction);
         $em->flush();
 
-        return $this->json('This is POST method');
+        return $this->json([
+            'success' => true,
+            'message' => 'Your transaction has been successfully done'
+        ], 201);
     }
-
 }
