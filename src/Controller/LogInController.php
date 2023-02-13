@@ -39,7 +39,6 @@ class LogInController extends AbstractController
         return $this->json([
             'success' => true,
             'message' => 'Verification is done successfully',
-            'token' => "Bearer $token"
         ]);
     }
 }
