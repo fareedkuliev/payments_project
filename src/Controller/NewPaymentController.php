@@ -21,42 +21,6 @@ class NewPaymentController extends AbstractController
         $this->tokenService = $tokenService;
     }
 
-    #[Route('/api/payment', name: 'app_new_payment', methods: 'GET')]
-    public function getData(ManagerRegistry $doctrine, Request $request): JsonResponse
-    {
-        $authorizationHeader = $request->headers->get("Authorization");
-
-        if(empty($authorizationHeader)){
-            return $this->json([
-                'success' => false,
-                'message' => 'Unauthorized user'
-            ], 500);
-        }
-
-        $token = $this->tokenService->decodeToken(substr($authorizationHeader, 7));
-
-        $em = $doctrine->getManager();
-        $email = $token->data['0'];
-
-        $cards = $em->getRepository(Cards::class)->findBy(['user_email'=>$email]);
-        $cardsData = [];
-        foreach ($cards as $card){
-            array_push($cardsData, [$card->getCardNumber(), $card->getPaymentSystem(), $card->getBalance()]);
-        };
-
-        $services = $em->getRepository(UtilityServices::class)->findAll();
-        $servicesData = [];
-        foreach ($services as $service){
-            array_push($servicesData, $service->getServiceName());
-        }
-
-        return $this->json([
-            'success' => true,
-            'cards' => $cardsData,
-            'services' => $servicesData
-        ]);
-    }
-
     #[Route('/api/payment', name: 'new_payment', methods: 'POST')]
     public function makePayment(ManagerRegistry $doctrine, Request $request):JsonResponse
     {
@@ -74,15 +38,25 @@ class NewPaymentController extends AbstractController
         $email = $token->data['0'];
         $data = json_decode($request->getContent(), true);
 
-        $sender = $em->getRepository(Cards::class)->findOneBy(['card_number' => $data['sender_card']]);
-        $recipient = $em->getRepository(Cards::class)->findOneBy(['card_number' => $data['recipient_card_account']]);
-        $sender->setBalance($sender->getBalance() - $data['amount']);
-        $recipient->setBalance($recipient->getBalance() + $data['amount']);
+        if($data['type_of_transaction'] === 'utility_service'){
+            $sendFromCard = $em->getRepository(Cards::class)->findOneBy(['card_number' => $data['sender_card']]);
+            $utilityServiceAccount = $em->getRepository(UtilityServices::class)->findOneBy(['account_number'=> $data['recipient_card_account']]);
+            $sendFromCard->setBalance($sendFromCard->getBalance() - $data['amount']);
+            $utilityServiceAccount->setBalance($utilityServiceAccount->getBalance() + $data['amount']);
 
-        $senderAccount = $em->getRepository(Accounts::class)->findOneBy(['user_email' => $email]);
-        $recipientAccount = $em->getRepository(Accounts::class)->findOneBy(['id' => $recipient->getAccountId()]);
-        $senderAccount->setBalance($senderAccount->getBalance() - $data['amount']);
-        $recipientAccount->setBalance($recipientAccount->getBalance() + $data['amount']);
+            $senderAccount = $em->getRepository(Accounts::class)->findOneBy(['user_email' => $email]);
+            $senderAccount->setBalance($senderAccount->getBalance() - $data['amount']);
+        } else{
+            $sender = $em->getRepository(Cards::class)->findOneBy(['card_number' => $data['sender_card']]);
+            $recipient = $em->getRepository(Cards::class)->findOneBy(['card_number' => $data['recipient_card_account']]);
+            $sender->setBalance($sender->getBalance() - $data['amount']);
+            $recipient->setBalance($recipient->getBalance() + $data['amount']);
+
+            $senderAccount = $em->getRepository(Accounts::class)->findOneBy(['user_email' => $email]);
+            $recipientAccount = $em->getRepository(Accounts::class)->findOneBy(['id' => $recipient->getAccountId()]);
+            $senderAccount->setBalance($senderAccount->getBalance() - $data['amount']);
+            $recipientAccount->setBalance($recipientAccount->getBalance() + $data['amount']);
+        }
 
         $transaction = new Transaction();
         $transaction->setTypeOfTransaction($data['type_of_transaction'])
