@@ -65,6 +65,14 @@ class NewInternalTransferController extends AbstractController
         $data = json_decode($request->getContent(), true);
 
         $sendFrom = $em->getRepository(Cards::class)->findOneBy(['card_number' => $data['sender_card']]);
+
+        if($data['amount'] > $sendFrom->getBalance()){
+            return $this->json([
+                'success' => false,
+                'message' => 'The transfer is impossible, not enough money'
+            ], 501);
+        }
+
         $sendTo = $em->getRepository(Cards::class)->findOneBy(['card_number' => $data['recipient_card_account']]);
         $sendFrom->setBalance($sendFrom->getBalance() - $data['amount']);
         $sendTo->setBalance($sendTo->getBalance() + $data['amount']);

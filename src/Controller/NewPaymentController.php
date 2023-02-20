@@ -38,18 +38,25 @@ class NewPaymentController extends AbstractController
         $email = $token->data['0'];
         $data = json_decode($request->getContent(), true);
 
+        $sendFrom = $em->getRepository(Cards::class)->findOneBy(['card_number' => $data['sender_card']]);
+
+        if($data['amount'] > $sendFrom->getBalance()){
+            return $this->json([
+                'success' => false,
+                'message' => 'The payment is impossible, not enough money'
+            ], 501);
+        }
+
         if($data['type_of_transaction'] === 'utility_service'){
-            $sendFromCard = $em->getRepository(Cards::class)->findOneBy(['card_number' => $data['sender_card']]);
             $utilityServiceAccount = $em->getRepository(UtilityServices::class)->findOneBy(['account_number'=> $data['recipient_card_account']]);
-            $sendFromCard->setBalance($sendFromCard->getBalance() - $data['amount']);
+            $sendFrom->setBalance($sendFrom->getBalance() - $data['amount']);
             $utilityServiceAccount->setBalance($utilityServiceAccount->getBalance() + $data['amount']);
 
             $senderAccount = $em->getRepository(Accounts::class)->findOneBy(['user_email' => $email]);
             $senderAccount->setBalance($senderAccount->getBalance() - $data['amount']);
         } else{
-            $sender = $em->getRepository(Cards::class)->findOneBy(['card_number' => $data['sender_card']]);
             $recipient = $em->getRepository(Cards::class)->findOneBy(['card_number' => $data['recipient_card_account']]);
-            $sender->setBalance($sender->getBalance() - $data['amount']);
+            $sendFrom->setBalance($sendFrom->getBalance() - $data['amount']);
             $recipient->setBalance($recipient->getBalance() + $data['amount']);
 
             $senderAccount = $em->getRepository(Accounts::class)->findOneBy(['user_email' => $email]);
