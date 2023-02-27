@@ -21,8 +21,6 @@ services:
     working_dir: /var/www/payment-project
     volumes:
       - .:/var/www/payment-project
-#      - ~/.ssh:/home/${DOCKER_USER}/.ssh
-#      - ~/.composer:/home/${DOCKER_USER}/.composer
     links:
       - mysql
 
@@ -32,18 +30,10 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: some-password
       MYSQL_DATABASE: payments-api
-#    volumes_from:
-#      - mysql-data
     volumes:
       - /var/lib/mysql
+      - ./dump.sql:/var/lib/dump.sql
     ports:
       - '3316:3306'
 
-#  mysql-data:
-#    image: mysql:latest
-#    container_name: mysql-data-container
-#    volumes:
-#      - /var/lib/mysql
-#    ports:
-#      - '3306:3306'
 
