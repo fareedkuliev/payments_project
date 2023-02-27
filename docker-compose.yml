@@ -1,9 +1,49 @@
-#version: '3'
-#
-#services:
-#  nginx:
-#    image: nginx:latest
-#    container_name: nginx-container
+services:
+
+  nginx:
+    image: nginx:latest
+    container_name: nginx-container
+    ports:
+      - 81:80
+    volumes:
+      - .:/var/www/payment-project
+      - ./nginx/conf.d:/etc/nginx/conf.d
+    depends_on:
+      - symfony
+    links:
+      - symfony
+
+  symfony:
+    container_name: symfony
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    working_dir: /var/www/payment-project
+    volumes:
+      - .:/var/www/payment-project
+#      - ~/.ssh:/home/${DOCKER_USER}/.ssh
+#      - ~/.composer:/home/${DOCKER_USER}/.composer
+    links:
+      - mysql
+
+  mysql:
+    image: mysql:latest
+    container_name: mysql-container
+    environment:
+      MYSQL_ROOT_PASSWORD: some-password
+      MYSQL_DATABASE: payments-api
+#    volumes_from:
+#      - mysql-data
+    volumes:
+      - /var/lib/mysql
+    ports:
+      - '3316:3306'
+
+#  mysql-data:
+#    image: mysql:latest
+#    container_name: mysql-data-container
+#    volumes:
+#      - /var/lib/mysql
 #    ports:
-#      - 80:81
-#
+#      - '3306:3306'
+
