@@ -40,13 +40,13 @@ class PaymentGetInfoController extends AbstractController
         $cards = $em->getRepository(Cards::class)->findBy(['user_email'=>$email]);
         $cardsData = [];
         foreach ($cards as $card){
-            array_push($cardsData, [$card->getCardNumber(), $card->getPaymentSystem(), $card->getBalance()]);
+          $cardsData = [$card->getCardNumber(), $card->getPaymentSystem(), $card->getBalance()];
         };
 
         $services = $em->getRepository(UtilityServices::class)->findAll();
         $servicesData = [];
         foreach ($services as $service){
-            array_push($servicesData, $service->getServiceName());
+            $servicesData = [$service->getServiceName()];
         }
 
         return $this->json([

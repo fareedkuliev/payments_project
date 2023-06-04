@@ -38,7 +38,7 @@ class NewInternalTransferController extends AbstractController
         $cards = $em->getRepository(Cards::class)->findBy(['user_email' => $email]);
         $cardsData = [];
         foreach ($cards as $card){
-            array_push($cardsData, [$card->getCardNumber(), $card->getPaymentSystem(), $card->getBalance()]);
+            $cardsData = [$card->getCardNumber(), $card->getPaymentSystem(), $card->getBalance()];
         };
 
         return $this->json([
